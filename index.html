@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>タスク管理アプリケーション 機能詳細ドキュメント</title>
+
+<!-- for markdown highlight -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css" integrity="sha512-hasIneQUHlh06VNBe7f6ZcHmeRTLIaQWFd43YriJ0UND19bvYRauxthDg8E4eVNPm9bRUhr5JGeqH7FRFXQu5g==" crossorigin="anonymous" referrerpolicy="no-referrer" data-for-md="1" />
+<!-- for markdown (github style) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.1.0/github-markdown.min.css" integrity="sha512-KUoB3bZ1XRBYj1QcH4BHCQjurAZnCO3WdrswyLDtp7BMwCw7dPZngSLqILf68SGgvnWHTD5pPaYrXi6wiRJ65g==" crossorigin="anonymous" referrerpolicy="no-referrer" data-for-md="1" />
+<!-- for markdown (github style) -->
+<style type="text/css" data-for-md="1">
+.markdown-body {
+  box-sizing: border-box;
+  min-width: 200px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 45px;
+}
+
+.markdown-body strong,
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5 {
+  font-weight: 700;
+}
+
+@media (max-width: 767px) {
+  .markdown-body {
+    padding: 15px;
+  }
+}
+</style>
+    
+<body class="markdown-body">
+<h2 id="タスク管理アプリケーション_機能詳細ドキュメント" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">タスク管理アプリケーション 機能詳細ドキュメント<a href="#タスク管理アプリケーション_機能詳細ドキュメント" title="タスク管理アプリケーション_機能詳細ドキュメント"><i class="headlink" style="display:none;"></i></a></h2>
+<h3 id="0._ファイル配置" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">0. ファイル配置<a href="#0._ファイル配置" title="0._ファイル配置"><i class="headlink" style="display:none;"></i></a></h3>
+<pre><code>task_manager/
+├── app.py
+├── database.py
+├── templates/
+│   ├── base.html
+│   ├── index.html
+│   └── edit_task.html
+└── tasks.db
+</code></pre>
+<h3 id="1._データベース_(database.py)" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">1. データベース (database.py)<a href="#1._データベース_(database.py)" title="1._データベース_(database.py)"><i class="headlink" style="display:none;"></i></a></h3>
+<pre><code class="language-Python">import sqlite3
+
+def get_db_connection():
+    conn = sqlite3.connect(&#39;tasks.db&#39;)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    conn = get_db_connection()
+    conn.execute(&#39;&#39;&#39;
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            status TEXT DEFAULT &#39;Pending&#39;
+        )
+    &#39;&#39;&#39;)
+    conn.close()
+
+# 初回実行時にテーブル作成
+init_db()
+</code></pre>
+<h4 id="機能概要" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">機能概要<a href="#機能概要" title="機能概要"><i class="headlink" style="display:none;"></i></a></h4>
+<ul>
+<li>SQLiteデータベースの接続と初期セットアップを担当する重要なモジュールです。</li>
+</ul>
+<h4 id="主要関数" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">主要関数<a href="#主要関数" title="主要関数"><i class="headlink" style="display:none;"></i></a></h4>
+<ul>
+<li><p>get_db_connection()：データベース接続を確立する関数</p>
+<ul>
+<li>SQLiteデータベースファイル（tasks.db）に接続</li>
+<li>row_factoryをSQLite.Rowに設定し、辞書形式でデータにアクセス可能にする</li>
+</ul>
+</li>
+<li><p>init_db()：タスク管理に必要なテーブルを作成</p>
+<ul>
+<li>テーブルが存在しない場合のみ新規作成</li>
+<li>タスクテーブルのスキーマ:<ul>
+<li>id: 自動採番される一意の識別子</li>
+<li>title: タスクのタイトル（必須）</li>
+<li>description: タスクの詳細説明</li>
+<li>status: タスクの現在の状態（デフォルト: &#39;Pending&#39;）</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="データベース設計の利点" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">データベース設計の利点<a href="#データベース設計の利点" title="データベース設計の利点"><i class="headlink" style="display:none;"></i></a></h4>
+<ul>
+<li>シンプルで軽量なSQLiteを使用</li>
+<li>ファイルベースのデータベースで、追加のサーバー設定不要</li>
+<li>小規模〜中規模アプリケーションに最適</li>
+</ul>
+<h3 id="2._メインアプリケーション_(app.py)" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">2. メインアプリケーション (app.py)<a href="#2._メインアプリケーション_(app.py)" title="2._メインアプリケーション_(app.py)"><i class="headlink" style="display:none;"></i></a></h3>
+<pre><code class="language-Python">from flask import Flask, render_template, request, redirect, url_for
+from database import get_db_connection
+
+app = Flask(__name__)
+
+@app.route(&#39;/&#39;)
+def index():
+    conn = get_db_connection()
+    tasks = conn.execute(&#39;SELECT * FROM tasks&#39;).fetchall()
+    conn.close()
+    return render_template(&#39;index.html&#39;, tasks=tasks)
+
+@app.route(&#39;/add_task&#39;, methods=[&#39;POST&#39;])
+def add_task():
+    title = request.form[&#39;title&#39;]
+    description = request.form[&#39;description&#39;]
+    
+    conn = get_db_connection()
+    conn.execute(&#39;INSERT INTO tasks (title, description) VALUES (?, ?)&#39;, 
+                 (title, description))
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for(&#39;index&#39;))
+
+@app.route(&#39;/edit_task/&lt;int:task_id&gt;&#39;, methods=[&#39;GET&#39;, &#39;POST&#39;])
+def edit_task(task_id):
+    conn = get_db_connection()
+    
+    if request.method == &#39;POST&#39;:
+        title = request.form[&#39;title&#39;]
+        description = request.form[&#39;description&#39;]
+        status = request.form[&#39;status&#39;]
+        
+        conn.execute(&#39;UPDATE tasks SET title=?, description=?, status=? WHERE id=?&#39;,
+                     (title, description, status, task_id))
+        conn.commit()
+        conn.close()
+        
+        return redirect(url_for(&#39;index&#39;))
+    
+    task = conn.execute(&#39;SELECT * FROM tasks WHERE id = ?&#39;, (task_id,)).fetchone()
+    conn.close()
+    
+    return render_template(&#39;edit_task.html&#39;, task=task)
+
+@app.route(&#39;/delete_task/&lt;int:task_id&gt;&#39;)
+def delete_task(task_id):
+    conn = get_db_connection()
+    conn.execute(&#39;DELETE FROM tasks WHERE id = ?&#39;, (task_id,))
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for(&#39;index&#39;))
+
+if __name__ == &#39;__main__&#39;:
+    app.run(debug=True)
+</code></pre>
+<h4 id="ルーティングと機能" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">ルーティングと機能<a href="#ルーティングと機能" title="ルーティングと機能"><i class="headlink" style="display:none;"></i></a></h4>
+<ul>
+<li><p>index() - ホームページ</p>
+<ul>
+<li>すべてのタスクを取得し、一覧表示</li>
+<li>データベースから全タスクを読み込み</li>
+<li>index.htmlテンプレートにタスクデータを渡す</li>
+</ul>
+</li>
+<li><p>add_task() - タスク追加</p>
+<ul>
+<li>POSTメソッドでタスクを新規作成</li>
+<li>フォームから送信されたタイトルと説明を受け取り</li>
+<li>データベースに新しいタスクを挿入</li>
+<li>ホームページにリダイレクト</li>
+</ul>
+</li>
+<li><p>edit_task() - タスク編集</p>
+<ul>
+<li>GETメソッド: 指定されたタスクの編集画面を表示</li>
+<li>POSTメソッド: タスク情報を更新</li>
+<li>タイトル、説明、ステータスを変更可能</li>
+<li>更新後はホームページにリダイレクト</li>
+</ul>
+</li>
+<li><p>delete_task() - タスク削除</p>
+<ul>
+<li>指定されたIDのタスクをデータベースから削除</li>
+<li>削除後はホームページにリダイレクト</li>
+</ul>
+</li>
+<li><p>セキュリティと入力検証</p>
+<ul>
+<li>Flaskの組み込みCSRF保護を使用</li>
+<li>パラメータ化クエリでSQLインジェクション対策</li>
+<li>基本的な入力必須チェック</li>
+</ul>
+</li>
+</ul>
+<h3 id="3._テンプレート" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">3. テンプレート<a href="#3._テンプレート" title="3._テンプレート"><i class="headlink" style="display:none;"></i></a></h3>
+<ul>
+<li><p>base.html - 基本レイアウト</p>
+<ul>
+<li>すべてのページの共通レイアウトを定義</li>
+<li>レスポンシブなCSSスタイリング</li>
+<li>Jinja2テンプレート継承機能を利用<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;ja&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;title&gt;タスク管理アプリ&lt;/title&gt;
+&lt;style&gt;
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .form-group { margin-bottom: 10px; }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+{% block content %}{% endblock %}
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+</li>
+</ul>
+</li>
+<li><p>index.html - タスク一覧ページ</p>
+<ul>
+<li>新規タスク追加フォーム</li>
+<li>既存タスクの一覧表示</li>
+<li>各タスクに対する編集・削除リンク<pre><code class="language-html">
+{% extends &amp;quot;base.html&amp;quot; %}
+{% block content %}
+&lt;h1&gt;タスク管理アプリ&lt;/h1&gt;&lt;/p&gt;
+&lt;h2&gt;新規タスク追加&lt;/h2&gt;
+&lt;form action=&quot;{{ url_for(&#39;add_task&#39;) }}&quot; method=&quot;post&quot;&gt;
+    &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label for=&quot;title&quot;&gt;タイトル:&lt;/label&gt;
+        &lt;input type=&quot;text&quot; id=&quot;title&quot; name=&quot;title&quot; required&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label for=&quot;description&quot;&gt;説明:&lt;/label&gt;
+        &lt;textarea id=&quot;description&quot; name=&quot;description&quot;&gt;&lt;/textarea&gt;
+    &lt;/div&gt;
+    &lt;button type=&quot;submit&quot;&gt;タスク追加&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;h2&gt;タスク一覧&lt;/h2&gt;
+&lt;table&gt;
+    &lt;thead&gt;
+        &lt;tr&gt;
+            &lt;th&gt;タイトル&lt;/th&gt;
+            &lt;th&gt;説明&lt;/th&gt;
+            &lt;th&gt;ステータス&lt;/th&gt;
+            &lt;th&gt;アクション&lt;/th&gt;
+        &lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+        {% for task in tasks %}
+        &lt;tr&gt;
+            &lt;td&gt;{{ task.title }}&lt;/td&gt;
+            &lt;td&gt;{{ task.description }}&lt;/td&gt;
+            &lt;td&gt;{{ task.status }}&lt;/td&gt;
+            &lt;td&gt;
+                &lt;a href=&quot;{{ url_for(&#39;edit_task&#39;, task_id=task.id) }}&quot;&gt;編集&lt;/a&gt;
+                &lt;a href=&quot;{{ url_for(&#39;delete_task&#39;, task_id=task.id) }}&quot; onclick=&quot;return confirm(&#39;本当に削除しますか?&#39;)&quot;&gt;削除&lt;/a&gt;
+            &lt;/td&gt;
+        &lt;/tr&gt;
+        {% endfor %}
+    &lt;/tbody&gt;
+&lt;/table&gt;
+{% endblock %}
+</code></pre>
+</li>
+</ul>
+</li>
+
+<li><p>edit_task.html - タスク編集ページ</p>
+<ul>
+<li>選択されたタスクの詳細編集</li>
+<li>ステータス変更のためのドロップダウン</li>
+<li>キャンセルボタンで一覧ページに戻る<pre><code class="language-html">{% extends &amp;quot;base.html&amp;quot; %}&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;  {% block content %}
+&lt;h1&gt;タスク編集&lt;/h1&gt;&lt;/p&gt;
+&lt;form action=&quot;{{ url_for(&#39;edit_task&#39;, task_id=task.id) }}&quot; method=&quot;post&quot;&gt;
+    &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label for=&quot;title&quot;&gt;タイトル:&lt;/label&gt;
+        &lt;input type=&quot;text&quot; id=&quot;title&quot; name=&quot;title&quot; value=&quot;{{ task.title }}&quot; required&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label for=&quot;description&quot;&gt;説明:&lt;/label&gt;
+        &lt;textarea id=&quot;description&quot; name=&quot;description&quot;&gt;{{ task.description }}&lt;/textarea&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;form-group&quot;&gt;
+        &lt;label for=&quot;status&quot;&gt;ステータス:&lt;/label&gt;
+        &lt;select id=&quot;status&quot; name=&quot;status&quot;&gt;
+            &lt;option value=&quot;Pending&quot; {% if task.status == &#39;Pending&#39; %}selected{% endif %}&gt;保留中&lt;/option&gt;
+            &lt;option value=&quot;In Progress&quot; {% if task.status == &#39;In Progress&#39; %}selected{% endif %}&gt;進行中&lt;/option&gt;
+            &lt;option value=&quot;Completed&quot; {% if task.status == &#39;Completed&#39; %}selected{% endif %}&gt;完了&lt;/option&gt;
+        &lt;/select&gt;
+    &lt;/div&gt;
+    &lt;button type=&quot;submit&quot;&gt;更新&lt;/button&gt;
+    &lt;a href=&quot;{{ url_for(&#39;index&#39;) }}&quot;&gt;キャンセル&lt;/a&gt;
+&lt;/form&gt;
+{% endblock %}
+</code></pre>
+</li></ul></li>
+<li><p>requirements.txt - 依存関係ファイル</p>
+<pre><code class="language-TEXT">flask==2.3.2
+sqlite3
+</code></pre>
+</li>
+</ul>
+<h3 id="4._機能拡張の可能性" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">4. 機能拡張の可能性<a href="#4._機能拡張の可能性" title="4._機能拡張の可能性"><i class="headlink" style="display:none;"></i></a></h3>
+<h4 id="データベース関連" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">データベース関連<a href="#データベース関連" title="データベース関連"><i class="headlink" style="display:none;"></i></a></h4>
+<ul>
+<li>タスクへのタグ付け</li>
+<li>優先度の追加</li>
+<li>期限日の実装</li>
+</ul>
+<h4 id="UI/UX改善" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">UI/UX改善<a href="#UI/UX改善" title="UI/UX改善"><i class="headlink" style="display:none;"></i></a></h4>
+<ul>
+<li>検索・フィルタリング機能</li>
+<li>ページネーション</li>
+<li>ドラッグ＆ドロップでのステータス変更</li>
+</ul>
+<h4 id="認証・セキュリティ" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">認証・セキュリティ<a href="#認証・セキュリティ" title="認証・セキュリティ"><i class="headlink" style="display:none;"></i></a></h4>
+<ul>
+<li>ユーザーログイン機能</li>
+<li>タスクの所有者制御</li>
+<li>パスワードハッシュ化</li>
+</ul>
+<h3 id="5._推奨される次のステップ" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">5. 推奨される次のステップ<a href="#5._推奨される次のステップ" title="5._推奨される次のステップ"><i class="headlink" style="display:none;"></i></a></h3>
+<ul>
+<li>入力バリデーションの強化</li>
+<li>エラーハンドリングの実装</li>
+<li>ログ機能の追加</li>
+<li>単体テストの作成</li>
+<li>本番環境デプロイ設定</li>
+</ul>
+<h3 id="技術スタック" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">技術スタック<a href="#技術スタック" title="技術スタック"><i class="headlink" style="display:none;"></i></a></h3>
+<ul>
+<li>Python 3.8+</li>
+<li>Flask 2.x</li>
+<li>SQLite 3</li>
+<li>Jinja2テンプレートエンジン</li>
+</ul>
+<h3 id="推奨学習リソース" onmouseover="this.querySelector('a .headlink').style.display='inline-block'" onmouseout="this.querySelector('a .headlink').style.display='none'">推奨学習リソース<a href="#推奨学習リソース" title="推奨学習リソース"><i class="headlink" style="display:none;"></i></a></h3>
+<ul>
+<li>Flask公式ドキュメント</li>
+<li>Python SQLiteドキュメント</li>
+<li>Web開発セキュリティガイドライン</li>
+</ul>
+
+
+<!-- for markdown (headlink hover) -->
+<script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous" data-for-md="1"></script>
+<!-- for markdown parsing -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.16/marked.min.js" integrity="sha512-8d9aScHpB0kf4+i5O3JlEP6VfvvjYYyZXa71ZKq0CzytOfDcH8d4Iej33s/0nNDcqWHhdDuAZKjA2y2qXzvJZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- for markdown highlight -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js" integrity="sha512-yUUc0qWm2rhM7X0EFe82LNnv2moqArj5nro/w1bi05A09hRVeIZbN6jlMoyu0+4I/Bu4Ck/85JQIU82T82M28w==" crossorigin="anonymous" referrerpolicy="no-referrer" data-for-md="1"></script>
+    
+
+<script>
+$(document).on("mouseover", "h1,h2,h3,h4,h5", function(e) {
+  $(e.currentTarget).find(".headlink").text("🔗").show();
+});
+$(document).on("mouseout", "h1,h2,h3,h4,h5", function(e) {
+  $(e.currentTarget).find(".headlink").hide();
+});
+</script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
