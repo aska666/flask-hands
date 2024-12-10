@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Basics</title>
+</head>
+<body>
+    <h1>1. 基本構造</h1>
+    <p>Flaskアプリケーションは、以下のようなシンプルなコードから始まります：</p>
+    <pre>
+<code>
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Hello, Flask!"
+
+if __name__ == "__main__":
+    app.run(debug=True)
+</code>
+    </pre>
+    <ul>
+        <li><strong>Flask クラス</strong>: アプリケーションオブジェクトを生成します。</li>
+        <li><strong>app.route デコレータ</strong>: URLルーティングを定義します。</li>
+        <li><strong>debug=True</strong>: デバッグモードを有効にします。</li>
+    </ul>
+
+    <h1>2. URLルーティング</h1>
+    <p>特定のURLに対して処理を割り当てる。</p>
+    <p>パラメータをURLから受け取る：</p>
+    <pre>
+<code>
+@app.route("/user/&lt;username&gt;")
+def show_user_profile(username):
+    return f"User: {username}"
+
+@app.route("/post/&lt;int:post_id&gt;")
+def show_post(post_id):
+    return f"Post ID: {post_id}"
+</code>
+    </pre>
+    <ul>
+        <li><code>&lt;type:var&gt;</code>: 型（<code>int</code>, <code>float</code>, <code>path</code>など）と変数名を指定。</li>
+    </ul>
+
+    <h1>3. リクエストとレスポンス</h1>
+    <h2>リクエストオブジェクト</h2>
+    <p>クライアントから送られたデータを取得。</p>
+    <pre>
+<code>
+from flask import request
+
+@app.route("/submit", methods=["POST"])
+def submit():
+    name = request.form["name"]
+    return f"Hello, {name}!"
+</code>
+    </pre>
+    <h2>レスポンスオブジェクト</h2>
+    <p>HTTPレスポンスをカスタマイズ。</p>
+    <pre>
+<code>
+from flask import Response
+
+@app.route("/custom_response")
+def custom_response():
+    return Response("Custom Response", status=200, mimetype="text/plain")
+</code>
+    </pre>
+
+    <h1>4. テンプレートレンダリング</h1>
+    <p>Jinja2テンプレートを使用してHTMLを動的に生成：</p>
+    <pre>
+<code>
+from flask import render_template
+
+@app.route("/")
+def home():
+    return render_template("index.html", title="Home Page", user="John")
+</code>
+    </pre>
+    <p><code>index.html</code> ファイル（<code>templates</code>フォルダ内）：</p>
+    <pre>
+<code>
+&lt;html&gt;
+  &lt;head&gt;&lt;title&gt;{{ title }}&lt;/title&gt;&lt;/head&gt;
+  &lt;body&gt;Hello, {{ user }}!&lt;/body&gt;
+&lt;/html&gt;
+</code>
+    </pre>
+
+    <h1>5. 静的ファイル</h1>
+    <p>静的ファイルは<code>static</code>フォルダに配置します。</p>
+    <p>URLからアクセス：</p>
+    <pre>
+<code>
+url_for('static', filename='style.css')
+</code>
+    </pre>
+
+    <h1>6. セッション管理</h1>
+    <p>Flaskはセッションデータをクライアント側で管理します。</p>
+    <pre>
+<code>
+from flask import session
+
+app.secret_key = "super_secret_key"
+
+@app.route("/set_session")
+def set_session():
+    session["username"] = "JohnDoe"
+    return "Session set!"
+
+@app.route("/get_session")
+def get_session():
+    username = session.get("username", "Guest")
+    return f"Hello, {username}!"
+</code>
+    </pre>
+
+    <h1>7. リダイレクトとURL生成</h1>
+    <p>リダイレクト:</p>
+    <pre>
+<code>
+from flask import redirect, url_for
+
+@app.route("/redirect_home")
+def redirect_home():
+    return redirect(url_for("home"))
+</code>
+    </pre>
+
+    <h1>8. エラーハンドリング</h1>
+    <p>カスタムエラーページの設定：</p>
+    <pre>
+<code>
+@app.errorhandler(404)
+def not_found(error):
+    return "Page not found!", 404
+</code>
+    </pre>
+
+    <h1>9. Blueprint（モジュール化）</h1>
+    <p>アプリケーションをモジュール化するための仕組み。</p>
+    <pre>
+<code>
+from flask import Blueprint
+
+bp = Blueprint("example", __name__)
+
+@bp.route("/example")
+def example():
+    return "This is an example blueprint!"
+
+app.register_blueprint(bp)
+</code>
+    </pre>
+
+    <h1>10. 拡張機能</h1>
+    <p>Flaskは基本的な機能しか持たないため、以下のような拡張で機能を追加します：</p>
+    <ul>
+        <li>データベース：Flask-SQLAlchemy</li>
+        <li>認証：Flask-Login</li>
+        <li>フォーム処理：Flask-WTF</li>
+        <li>REST API構築：Flask-RESTful</li>
+    </ul>
+</body>
+</html>
